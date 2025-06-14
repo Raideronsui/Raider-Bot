@@ -1,5 +1,2 @@
 python-telegram-bot==20.8
-<<<<<<< HEAD
-=======
-
->>>>>>> 785d345 (Update to PTB 20.8)
+Flask==2.3.3
