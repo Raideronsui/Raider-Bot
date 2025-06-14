@@ -1,38 +1,40 @@
-from flask import Flask, request
-from telegram import Bot, Update
-from telegram.ext import Dispatcher, CommandHandler
 import os
+from flask import Flask, request
+from telegram import Update
+from telegram.ext import ApplicationBuilder, CommandHandler, ContextTypes
 
-# Load token from environment (fallback to hardcoded if needed for local testing)
-BOT_TOKEN = os.environ.get("BOT_TOKEN") or "7586933538:AAEdrgOLMGkKzpA94558_1uLj25rxb7NKds"
+BOT_TOKEN = os.getenv("BOT_TOKEN")
+WEBHOOK_URL = f"https://github.com/Raideronsui/Raider-Bot/7586933538:AAEdrgOLMGkKzpA94558_1uLj25rxb7NKds"  # Replace with your Render URL
 
-bot = Bot(token=BOT_TOKEN)
 app = Flask(__name__)
-
-dispatcher = Dispatcher(bot, None, workers=0)
+application = ApplicationBuilder().token(BOT_TOKEN).build()
 
 # Commands
-def start(update, context):
-    update.message.reply_text("Raider Bot is live!")
+async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    await update.message.reply_text("Raider Bot is live!")
 
-def help_command(update, context):
-    update.message.reply_text("Use /start or /help")
+async def help_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    await update.message.reply_text("Use /start or /help")
 
 # Register command handlers
-dispatcher.add_handler(CommandHandler("start", start))
-dispatcher.add_handler(CommandHandler("help", help_command))
+application.add_handler(CommandHandler("start", start))
+application.add_handler(CommandHandler("help", help_command))
 
-# Webhook endpoint
+# Flask route to receive updates
 @app.route(f'/{BOT_TOKEN}', methods=['POST'])
-def webhook():
-    update = Update.de_json(request.get_json(force=True), bot)
-    dispatcher.process_update(update)
-    return 'ok'
+async def webhook():
+    data = request.get_json(force=True)
+    update = Update.de_json(data, application.bot)
+    await application.process_update(update)
+    return "ok"
 
 # Health check route
 @app.route('/')
 def index():
-    return 'Raider Bot is up.'
+    return "Raider Bot is running."
 
-if __name__ == '__main__':
-    app.run(host='0.0.0.0', port=10000)
+if __name__ == "__main__":
+    import asyncio
+    asyncio.run(application.initialize())
+    asyncio.run(application.bot.set_webhook(url=WEBHOOK_URL))
+    app.run(host="0.0.0.0", port=10000)
