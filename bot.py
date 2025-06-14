@@ -1,21 +1,38 @@
-from telegram import Update
-from telegram.ext import ApplicationBuilder, CommandHandler, ContextTypes
+from flask import Flask, request
+from telegram import Bot, Update
+from telegram.ext import Dispatcher, CommandHandler
+import os
 
-TOKEN = "7586933538:AAEdrgOLMGkKzpA94558_1uLj25rxb7NKds"  # Replace this with your actual token
+# Load token from environment (fallback to hardcoded if needed for local testing)
+BOT_TOKEN = os.environ.get("BOT_TOKEN") or "7586933538:AAEdrgOLMGkKzpA94558_1uLj25rxb7NKds"
 
-async def start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
-    await update.message.reply_text("Welcome to Raider Bot!")
+bot = Bot(token=BOT_TOKEN)
+app = Flask(__name__)
 
-async def help_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
-    await update.message.reply_text("Here’s how to use Raider Bot...")
+dispatcher = Dispatcher(bot, None, workers=0)
 
-def main():
-    app = ApplicationBuilder().token(TOKEN).build()
+# Commands
+def start(update, context):
+    update.message.reply_text("Raider Bot is live!")
 
-    app.add_handler(CommandHandler("start", start))
-    app.add_handler(CommandHandler("help", help_command))
+def help_command(update, context):
+    update.message.reply_text("Use /start or /help")
 
-    app.run_polling()
+# Register command handlers
+dispatcher.add_handler(CommandHandler("start", start))
+dispatcher.add_handler(CommandHandler("help", help_command))
 
-if __name__ == "__main__":
-    main()
+# Webhook endpoint
+@app.route(f'/{BOT_TOKEN}', methods=['POST'])
+def webhook():
+    update = Update.de_json(request.get_json(force=True), bot)
+    dispatcher.process_update(update)
+    return 'ok'
+
+# Health check route
+@app.route('/')
+def index():
+    return 'Raider Bot is up.'
+
+if __name__ == '__main__':
+    app.run(host='0.0.0.0', port=10000)
