@@ -40,8 +40,6 @@ if __name__ == "__main__":
     threading.Thread(target=lambda: application.run_polling()).start()
     app.run(host="0.0.0.0", port=10000)
 
-d0620f8 (Fix: migrate to PTB 20.8 async and remove Updater)
-
 # Webhook endpoint
 @app.route(f"/{BOT_TOKEN}", methods=["POST"])
 async def webhook():
