@@ -19,6 +19,7 @@ async def help_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
 # Register commands
 application.add_handler(CommandHandler("start", start))
 application.add_handler(CommandHandler("help", help_command))
+HEAD
 
 # Webhook endpoint
 @app.route(f"/{BOT_TOKEN}", methods=["POST"])
@@ -39,3 +40,23 @@ if __name__ == "__main__":
     threading.Thread(target=lambda: application.run_polling()).start()
     app.run(host="0.0.0.0", port=10000)
 
+d0620f8 (Fix: migrate to PTB 20.8 async and remove Updater)
+
+# Webhook endpoint
+@app.route(f"/{BOT_TOKEN}", methods=["POST"])
+async def webhook():
+    data = request.get_json(force=True)
+    update = Update.de_json(data, application.bot)
+    await application.process_update(update)
+    return "ok"
+
+# Health check endpoint
+@app.route("/", methods=["GET"])
+def index():
+    return "Bot is running."
+
+# Local testing
+if __name__ == "__main__":
+    import threading
+    threading.Thread(target=lambda: application.run_polling()).start()
+    app.run(host="0.0.0.0", port=10000)
