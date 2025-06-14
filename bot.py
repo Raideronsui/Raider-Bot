@@ -1,37 +1,21 @@
-from flask import Flask, request
-from telegram import Bot, Update
-from telegram.ext import Dispatcher, CommandHandler
+from telegram import Update
+from telegram.ext import ApplicationBuilder, CommandHandler, ContextTypes
 
-BOT_TOKEN = "YOUR_BOT_TOKEN_HERE"
+TOKEN = "7586933538:AAEdrgOLMGkKzpA94558_1uLj25rxb7NKds"  # Replace this with your actual token
 
-bot = Bot(token=BOT_TOKEN)
-app = Flask(__name__)
+async def start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    await update.message.reply_text("Welcome to Raider Bot!")
 
-dispatcher = Dispatcher(bot, None, workers=0)
+async def help_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    await update.message.reply_text("Here’s how to use Raider Bot...")
 
-# Commands
-def start(update, context):
-    update.message.reply_text("Raider Bot is live!")
+def main():
+    app = ApplicationBuilder().token(TOKEN).build()
 
-def help_command(update, context):
-    update.message.reply_text("Use /start or /help")
+    app.add_handler(CommandHandler("start", start))
+    app.add_handler(CommandHandler("help", help_command))
 
-# Register command handlers
-dispatcher.add_handler(CommandHandler("start", start))
-dispatcher.add_handler(CommandHandler("help", help_command))
+    app.run_polling()
 
-# Webhook endpoint
-@app.route(f'/{BOT_TOKEN}', methods=['POST'])
-def webhook():
-    update = Update.de_json(request.get_json(force=True), bot)
-    dispatcher.process_update(update)
-    return 'ok'
-
-# Keep alive (for health check)
-@app.route('/')
-def index():
-    return 'Bot is running.'
-
-if __name__ == '__main__':
-    app.run(host='0.0.0.0', port=10000)
-
+if __name__ == "__main__":
+    main()
