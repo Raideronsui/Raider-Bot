@@ -1,0 +1,10 @@
+services:
+  - type: web
+    name: raider-bot
+    env: python
+    plan: free
+    buildCommand: pip install -r requirements.txt
+    startCommand: python bot.py
+    envVars:
+      - key: BOT_TOKEN
+        value: 7586933538:AAEdrgOLMGkKzpA94558_1uLj25rxb7NKds
